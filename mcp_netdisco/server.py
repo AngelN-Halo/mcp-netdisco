@@ -29,7 +29,7 @@ async def require_api_key(credentials: HTTPAuthorizationCredentials | None = Dep
     if not expected:
         raise HTTPException(status_code=503, detail="MCPO_API_KEY is not configured")
     if credentials is None or credentials.scheme.lower() != "bearer" or credentials.credentials != expected:
-        raise HTTPException(status_code=401, detail="Invalid or missing X-API-Key")
+        raise HTTPException(status_code=401, detail="Invalid or missing bearer token")
 
 
 async def _login(client: httpx.AsyncClient) -> str:
@@ -48,10 +48,10 @@ async def _get(path: str, params: dict[str, Any] | None = None) -> Any:
     timeout = float(os.environ.get("NETDISCO_TIMEOUT", "20"))
     async with httpx.AsyncClient(timeout=timeout, follow_redirects=False) as client:
         token = await _login(client) if _token is None or time.time() - _token_issued_at >= TOKEN_REFRESH_SECONDS else _token
-        response = await client.get(f"{_base_url()}{path}", params=params or {}, headers={"Authorization": f"Bearer {token}"})
+        response = await client.get(f"{_base_url()}{path}", params=params or {}, headers={"Accept": "application/json", "Authorization": token})
         if response.status_code == 401:
             token = await _login(client)
-            response = await client.get(f"{_base_url()}{path}", params=params or {}, headers={"Authorization": f"Bearer {token}"})
+            response = await client.get(f"{_base_url()}{path}", params=params or {}, headers={"Accept": "application/json", "Authorization": token})
         response.raise_for_status()
         return response.json()
 
