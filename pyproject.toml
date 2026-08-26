@@ -4,13 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mcp-netdisco"
-version = "0.1.0"
-description = "MCP server for Netdisco"
+version = "0.2.0"
+description = "OpenAPI gateway for read-only Netdisco access"
 requires-python = ">=3.11"
-dependencies = [
-  "httpx>=0.27,<1",
-  "mcp>=1.0,<2",
-]
+dependencies = ["fastapi>=0.115,<1", "httpx>=0.27,<1", "uvicorn[standard]>=0.30,<1"]
 
 [project.scripts]
 mcp-netdisco = "mcp_netdisco.server:main"

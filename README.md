@@ -15,7 +15,7 @@ A Dockerized [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) se
 Create a `.env` file. The default URL is the production Netdisco server:
 
 ```env
-NETDISCO_URL=http://your-url-com:5000
+NETDISCO_URL=http://your-url-site.com:5000
 NETDISCO_USERNAME=your-netdisco-username
 NETDISCO_PASSWORD=your-netdisco-password
 NETDISCO_TIMEOUT=20
