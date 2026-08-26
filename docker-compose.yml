@@ -1,0 +1,11 @@
+services:
+  mcp-netdisco:
+    build: .
+    image: mcp-netdisco:latest
+    restart: unless-stopped
+    environment:
+      NETDISCO_URL: ${NETDISCO_URL:?Set NETDISCO_URL in .env}
+      NETDISCO_TOKEN: ${NETDISCO_TOKEN:-}
+      NETDISCO_TIMEOUT: ${NETDISCO_TIMEOUT:-20}
+    stdin_open: true
+    tty: true
