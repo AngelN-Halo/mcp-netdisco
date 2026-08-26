@@ -32,3 +32,4 @@ docker run --rm -i --env-file .env mcp-netdisco
 
 The server exposes the `netdisco_api` tool, which accepts a read-only API path and optional query parameters. It blocks absolute URLs and non-GET methods.
 # mcp-netdisco
+# mcp-netdisco
