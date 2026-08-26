@@ -1,69 +1,85 @@
 # mcp-netdisco
 
-A Dockerized [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that gives MCP clients read-only access to Netdisco.
+A Dockerized, read-only OpenAPI gateway that gives Open WebUI access to Netdisco.
 
 ## Features
 
-- Uses Netdisco's `/login` endpoint with HTTP Basic credentials
-- Caches the returned API key and refreshes it every 30 days
-- Automatically re-authenticates if Netdisco returns HTTP 401
-- Restricts requests to relative paths on the configured Netdisco server
-- Runs over MCP stdio for clients that launch Docker containers
+- OpenAPI integration for Open WebUI
+- Bearer protection using `MCPO_API_KEY`
+- Automatic Netdisco `/login` using username/password
+- Automatic Netdisco API-key renewal and retry after HTTP 401
+- IP, MAC, hostname, switch, and router lookup
+- Cisco MAC normalization, such as `9cf6.1a86.0e0c` to `9c:f6:1a:86:0e:0c`
+- Partial MAC matching
+- IP-to-MAC-to-switch-port resolution
+- Switch-port configuration enrichment
 
 ## Configuration
 
-Create a `.env` file. The default URL is the production Netdisco server:
+Create a `.env` file:
 
 ```env
-NETDISCO_URL=http://your-url-site.com:5000
+NETDISCO_URL=http://your-netdisco-server:5000
 NETDISCO_USERNAME=your-netdisco-username
 NETDISCO_PASSWORD=your-netdisco-password
+MCPO_API_KEY=replace-with-a-long-random-secret
 NETDISCO_TIMEOUT=20
 ```
 
-The username and password are used only to obtain an API key from `POST /login`. Do not commit `.env`.
+Never commit `.env`. The Netdisco credentials are used only to obtain an upstream API key.
 
-## Docker
+## Docker and Nginx Proxy Manager
 
-Build and run directly:
-
-```bash
-docker build -t mcp-netdisco .
-docker run --rm -i --env-file .env mcp-netdisco
-```
-
-Or use Compose:
+The Compose service joins the external Docker network named `proxy` and exposes port `8000` only inside that network.
 
 ```bash
-docker compose build
-docker compose run --rm -T mcp-netdisco
+docker compose up -d --build
 ```
 
-## MCP tool
+Configure Nginx Proxy Manager with:
 
-The server exposes:
-
-`netdisco_api(path, query)`
-
-- `path`: a relative Netdisco API path, such as `/api/v1/search/device`
-- `query`: optional query-string parameters
-
-Only HTTP GET requests are supported for data calls. Absolute URLs are rejected, and requests cannot redirect to another host.
-
-## Netdisco token lifetime
-
-The server refreshes its cached API key every 30 days and retries once after a 401 response. Netdisco's `api_token_lifetime` setting must be longer than the refresh interval (or the 401 retry will obtain a fresh key when needed). The refresh interval can later be made configurable if needed.
-
-## Development
-
-```bash
-python3 -m venv .venv
-. .venv/bin/activate
-pip install -e .
-export NETDISCO_USERNAME=your-user
-export NETDISCO_PASSWORD=your-password
-python -m mcp_netdisco
+```text
+Forward Hostname: mcp-netdisco
+Forward Port: 8000
+Scheme: http
 ```
+
+Add the resulting HTTPS URL to Open WebUI as an **OpenAPI** connection and use `MCPO_API_KEY` as its bearer token.
+
+The schema is available at `/openapi.json`.
+
+## Preferred lookup
+
+Use `lookup_identifier` for normal searches. It accepts:
+
+- IPv4 addresses
+- Full or partial MAC addresses
+- IEEE MAC format: `9c:f6:1a:86:0e:0c`
+- Cisco MAC format: `9cf6.1a86.0e0c`
+- Hostnames
+- Managed switch or router names and addresses
+
+The response includes endpoint records, managed-device matches, switch-port sightings, and port configuration. Port details include fields returned by Netdisco such as interface description/name, VLAN/PVID, admin and operational state, speed, duplex, MTU, MAC, neighbor information, and timestamps.
+
+To keep broad partial searches bounded, the gateway enriches at most 20 matching MAC addresses and 25 unique switch ports. The response sets `results_truncated` when a query exceeds either limit.
+
+## Other endpoints
+
+- `GET /lookup` — preferred universal lookup
+- `GET /find-node` — endpoint IP/MAC lookup with port enrichment
+- `GET /find-device` — managed switches and routers only
+- `GET /device/{ip}` — details for a known managed switch or router
+- `GET /health` — unauthenticated health check
+
+## Security
+
+All data endpoints require:
+
+```http
+Authorization: Bearer <MCPO_API_KEY>
+```
+
+The service is read-only and does not publish its container port directly on the Docker host.
 
 ## License
 
