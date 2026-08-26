@@ -81,6 +81,10 @@ Authorization: Bearer <MCPO_API_KEY>
 
 The service is read-only and does not publish its container port directly on the Docker host.
 
+## Change history
+
+See [CHANGELOG.md](CHANGELOG.md) for the complete implementation and fix history.
+
 ## License
 
 No license has been selected yet.
