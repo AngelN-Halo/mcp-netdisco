@@ -1,6 +1,13 @@
 # mcp-netdisco
 
-Dockerized MCP server for querying a Netdisco instance over its HTTP API.
+A Dockerized [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that gives MCP clients read-only access to a Netdisco server.
+
+## Features
+
+- Exposes a `netdisco_api` tool for Netdisco HTTP API requests
+- Restricts requests to relative paths on the configured Netdisco server
+- Supports optional bearer-token authentication
+- Runs over MCP stdio, making it suitable for clients that launch Docker containers
 
 ## Configuration
 
@@ -12,24 +19,52 @@ NETDISCO_TOKEN=
 NETDISCO_TIMEOUT=20
 ```
 
-`NETDISCO_URL` is required. The token is optional and is sent as a bearer token.
+`NETDISCO_URL` is required. `NETDISCO_TOKEN` is optional and is sent as a bearer token.
 
-## Run with Docker Compose
+## Docker
+
+Build the image:
+
+```bash
+docker build -t mcp-netdisco .
+```
+
+Run it directly:
+
+```bash
+docker run --rm -i --env-file .env mcp-netdisco
+```
+
+Or use Compose:
 
 ```bash
 docker compose build
 docker compose run --rm -T mcp-netdisco
 ```
 
-The container runs the MCP server over stdio, which is suitable for an MCP client that launches the container.
+## MCP tool
 
-## Run directly
+The server exposes:
+
+`netdisco_api(path, query)`
+
+- `path`: a relative Netdisco API path such as `/api/node`, `/api/device`, or `/api/port`
+- `query`: optional query-string parameters
+
+Only HTTP GET requests are supported. Absolute URLs are rejected, and requests cannot redirect to another host.
+
+## Development
+
+Run locally with Python 3.11+:
 
 ```bash
-docker build -t mcp-netdisco .
-docker run --rm -i --env-file .env mcp-netdisco
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -e .
+export NETDISCO_URL=http://localhost:5000
+python -m mcp_netdisco
 ```
 
-The server exposes the `netdisco_api` tool, which accepts a read-only API path and optional query parameters. It blocks absolute URLs and non-GET methods.
-# mcp-netdisco
-# mcp-netdisco
+## License
+
+No license has been selected yet.
