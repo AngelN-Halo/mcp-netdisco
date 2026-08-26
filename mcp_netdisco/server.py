@@ -4,7 +4,7 @@ from typing import Any
 
 import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
-from fastapi.security import APIKeyHeader
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 app = FastAPI(title="Netdisco OpenAPI Gateway", description="Read-only Netdisco access for Open WebUI.", version="0.2.0")
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
@@ -24,11 +24,11 @@ def _credentials() -> tuple[str, str]:
     return username, password
 
 
-async def require_api_key(key: str | None = Depends(api_key_header)) -> None:
+async def require_api_key(credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme)) -> None:
     expected = os.environ.get("OPENAPI_API_KEY", "").strip()
     if not expected:
         raise HTTPException(status_code=503, detail="OPENAPI_API_KEY is not configured")
-    if key != expected:
+    if credentials is None or credentials.scheme.lower() != bearer or credentials.credentials != expected:
         raise HTTPException(status_code=401, detail="Invalid or missing X-API-Key")
 
 
