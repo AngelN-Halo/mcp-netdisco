@@ -7,7 +7,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 app = FastAPI(title="Netdisco OpenAPI Gateway", description="Read-only Netdisco access for Open WebUI.", version="0.2.0")
-api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+bearer_scheme = HTTPBearer(auto_error=False)
 _token: str | None = None
 _token_issued_at = 0.0
 TOKEN_REFRESH_SECONDS = 30 * 24 * 60 * 60
