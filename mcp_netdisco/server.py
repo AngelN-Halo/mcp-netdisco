@@ -5,7 +5,7 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("mcn-netdisco")
+mcp = FastMCP("mcp-netdisco")
 
 
 def _base_url() -> str:
