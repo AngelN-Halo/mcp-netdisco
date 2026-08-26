@@ -28,7 +28,7 @@ async def require_api_key(credentials: HTTPAuthorizationCredentials | None = Dep
     expected = os.environ.get("MCPO_API_KEY", "").strip()
     if not expected:
         raise HTTPException(status_code=503, detail="MCPO_API_KEY is not configured")
-    if credentials is None or credentials.scheme.lower() != bearer or credentials.credentials != expected:
+    if credentials is None or credentials.scheme.lower() != "bearer" or credentials.credentials != expected:
         raise HTTPException(status_code=401, detail="Invalid or missing X-API-Key")
 
 
