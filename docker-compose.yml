@@ -3,8 +3,10 @@ services:
     build: .
     image: mcp-netdisco:latest
     restart: unless-stopped
-    ports:
-      - "${API_PORT:-8000}:8000"
+    networks:
+      - proxy
+    expose:
+      - "8000"
     environment:
       NETDISCO_URL: ${NETDISCO_URL:-http://cenetbox-ls01.leanderisd.org:5000}
       NETDISCO_USERNAME: ${NETDISCO_USERNAME:?Set NETDISCO_USERNAME in .env}
@@ -13,3 +15,8 @@ services:
       NETDISCO_TIMEOUT: ${NETDISCO_TIMEOUT:-20}
       API_HOST: 0.0.0.0
       API_PORT: 8000
+
+networks:
+  proxy:
+    external: true
+    name: proxy
