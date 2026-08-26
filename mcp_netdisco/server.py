@@ -106,6 +106,8 @@ async def _enriched_node_search(query: str, partial: bool, include_port_details:
     normalized = _normalize_node_query(query)
     search_params = {"q": normalized, "partial": partial, "deviceports": True, "show_vendor": True}
     primary = await _get("/api/v1/search/node", search_params)
+    if not isinstance(primary, dict):
+        primary = {"raw_results": primary}
 
     macs = _macs_from_result(primary)
     expanded: list[dict[str, Any]] = []
