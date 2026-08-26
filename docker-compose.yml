@@ -4,8 +4,9 @@ services:
     image: mcp-netdisco:latest
     restart: unless-stopped
     environment:
-      NETDISCO_URL: ${NETDISCO_URL:?Set NETDISCO_URL in .env}
-      NETDISCO_TOKEN: ${NETDISCO_TOKEN:-}
+      NETDISCO_URL: ${NETDISCO_URL:-http://cenetbox-ls01.leanderisd.org:5000}
+      NETDISCO_USERNAME: ${NETDISCO_USERNAME:?Set NETDISCO_USERNAME in .env}
+      NETDISCO_PASSWORD: ${NETDISCO_PASSWORD:?Set NETDISCO_PASSWORD in .env}
       NETDISCO_TIMEOUT: ${NETDISCO_TIMEOUT:-20}
     stdin_open: true
     tty: true

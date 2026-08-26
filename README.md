@@ -1,37 +1,34 @@
 # mcp-netdisco
 
-A Dockerized [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that gives MCP clients read-only access to a Netdisco server.
+A Dockerized [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) server that gives MCP clients read-only access to Netdisco.
 
 ## Features
 
-- Exposes a `netdisco_api` tool for Netdisco HTTP API requests
+- Uses Netdisco's `/login` endpoint with HTTP Basic credentials
+- Caches the returned API key and refreshes it every 30 days
+- Automatically re-authenticates if Netdisco returns HTTP 401
 - Restricts requests to relative paths on the configured Netdisco server
-- Supports optional bearer-token authentication
-- Runs over MCP stdio, making it suitable for clients that launch Docker containers
+- Runs over MCP stdio for clients that launch Docker containers
 
 ## Configuration
 
-Create a `.env` file:
+Create a `.env` file. The default URL is the production Netdisco server:
 
 ```env
-NETDISCO_URL=http://netdisco:5000
-NETDISCO_TOKEN=
+NETDISCO_URL=http://cenetbox-ls01.leanderisd.org:5000
+NETDISCO_USERNAME=your-netdisco-username
+NETDISCO_PASSWORD=your-netdisco-password
 NETDISCO_TIMEOUT=20
 ```
 
-`NETDISCO_URL` is required. `NETDISCO_TOKEN` is optional and is sent as a bearer token.
+The username and password are used only to obtain an API key from `POST /login`. Do not commit `.env`.
 
 ## Docker
 
-Build the image:
+Build and run directly:
 
 ```bash
 docker build -t mcp-netdisco .
-```
-
-Run it directly:
-
-```bash
 docker run --rm -i --env-file .env mcp-netdisco
 ```
 
@@ -48,20 +45,23 @@ The server exposes:
 
 `netdisco_api(path, query)`
 
-- `path`: a relative Netdisco API path such as `/api/node`, `/api/device`, or `/api/port`
+- `path`: a relative Netdisco API path, such as `/api/v1/search/device`
 - `query`: optional query-string parameters
 
-Only HTTP GET requests are supported. Absolute URLs are rejected, and requests cannot redirect to another host.
+Only HTTP GET requests are supported for data calls. Absolute URLs are rejected, and requests cannot redirect to another host.
+
+## Netdisco token lifetime
+
+The server refreshes its cached API key every 30 days and retries once after a 401 response. Netdisco's `api_token_lifetime` setting must be longer than the refresh interval (or the 401 retry will obtain a fresh key when needed). The refresh interval can later be made configurable if needed.
 
 ## Development
-
-Run locally with Python 3.11+:
 
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -e .
-export NETDISCO_URL=http://localhost:5000
+export NETDISCO_USERNAME=your-user
+export NETDISCO_PASSWORD=your-password
 python -m mcp_netdisco
 ```
 
